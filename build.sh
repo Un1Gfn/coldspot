@@ -8,14 +8,15 @@ err(){
 {
 
   PORT=17629
-  REMOTE=user@wt88047usb
+  REMOTE=wt88047usb
   ACT="$(basename "$0")"
+  LIBS='libnm libelogind'
 
   if [ "$ACT" = 'build.sh' ]; then
 
     [ aarch64 = "$(uname -m)" ] || err 'need aarch64'
     # shellcheck disable=SC2046
-    gcc -Wall -Wextra $(pkg-config --cflags libnm) -o coldspot main.c $(pkg-config --libs libnm)
+    gcc -Wall -Wextra -std=gnu11 $(pkg-config --cflags $LIBS) -o coldspot main.c $(pkg-config --libs $LIBS)
 
   elif [ "$ACT" = 'run.sh' ]; then
 
@@ -23,8 +24,11 @@ err(){
     ip -o -4 addr show dev enp0s20f0u2 | grep inet >/dev/null || sudo dhcpcd enp0s20f0u2
     if [ -n "$RUN" ]; then
       # echo "run" 1>&2
+      clear 1>&2
+      tput reset 1>&2
+      ssh user@"$REMOTE" rm -f /tmp/coldspot
       scp -q coldspot "$REMOTE":/tmp/ 1>&2
-      ssh "$REMOTE" /tmp/coldspot 1>&2
+      ssh root@"$REMOTE" ash -c '/tmp/coldspot; echo [exit $?];' 1>&2
     else
       echo 'waiting for packets...'
       # busybox nc -l -p "$PORT"
