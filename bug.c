@@ -5,6 +5,8 @@
 #include <glib.h>
 #include <NetworkManager.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <stdio.h>
 
 // void func(
 //   __attribute__((unused)) NMSetting *setting,
@@ -23,36 +25,6 @@
 //   }
 // }
 
-NMSetting *reconstruct_auto(NMSettingConnection *p){
-
-  // g_assert_true(!nm_setting_option_get_boolean(p, "autoconnect", &(gboolean){0}));
-  // g_assert_true(!nm_setting_option_get_boolean(p, "connection.autoconnect", &(gboolean){0}));
-  // g_assert_true(!nm_setting_option_get_all_names(p, &(guint){0}));
-  // g_assert_true(!nm_setting_option_get(p, "autoconnect"));
-  // g_assert_true(!nm_setting_option_get(p, "connection.autoconnect"));
-  // g_assert_true(!nm_setting_option_get_uint32(p, "autoconnect", &(guint32){0}));
-  // g_assert_true(!nm_setting_option_get_uint32(p, "connection.autoconnect", &(guint32){0}));
-
-  NMSetting *news=nm_setting_connection_new();
-  g_assert_true(news);
-
-  // if variant is a floating reference, it will be consumed
-  // #define g_variant_new_string2(X) {const gchar* s=X; g_assert_true(s&&s[0]); g_variant_new_string(s);}
-  g_print("%s\n", nm_setting_connection_get_id(p));
-  nm_setting_option_set(news, "id",             g_variant_new_string(nm_setting_connection_get_id(p)));
-  nm_setting_option_set(news, "uuid",           g_variant_new_string(nm_setting_connection_get_uuid(p)));
-  nm_setting_option_set(news, "type",           g_variant_new_string(nm_setting_connection_get_connection_type(p)));
-  nm_setting_option_set(news, "autoconnect",    g_variant_new_boolean(TRUE));
-  nm_setting_option_set(news, "interface-name", g_variant_new_string(nm_setting_connection_get_interface_name(p)));
-  nm_setting_option_set(news, "timestamp",      g_variant_new_uint64(nm_setting_connection_get_timestamp(p)));
-
-  // nm_setting_enumerate_values(news, &func, NULL);
-  g_print("%s\n", nm_setting_to_string(news));
-
-  return news;
-
-}
-
 int main(){
   // g_assert(0==getuid()&&argc==2&&argv[1]);
   
@@ -63,25 +35,46 @@ int main(){
   NMRemoteConnection *r_con=nm_client_get_connection_by_uuid(client, "22b985e1-e00e-4e0a-be92-8d9de9903968"); g_assert_true(r_con);
   NMConnection *con=NM_CONNECTION(r_con);
 
-  NMSettingConnection *set_c=nm_connection_get_setting_connection(NM_CONNECTION(con)); g_assert_true(set_c);
+  NMSettingConnection *set_c=nm_connection_get_setting_connection(con); g_assert_true(set_c);
 
-  NMSetting *news=reconstruct_auto(set_c);
-
-  GError *e=NULL;
-  if(!nm_setting_verify(news, con, &e)){
-    g_critical("err: %s\n", e->message);
-    exit(0);
+  GVariant *v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
+  gsize sz=g_variant_get_size(v);
+  g_print("%lu\n", sz);
+  gchar data[sz+1]; bzero(data, sz+1);
+  g_variant_store(v, data);
+  g_assert_true(!isprint('\b'));
+  g_assert_true(!isprint('\v'));
+  g_assert_true(!isprint('\t'));
+  for(gsize i=0; i<sz; ++i){
+    gchar ch=data[i];
+    // g_print("[%lu] ", i);
+    putchar(isprint(ch)?ch:'.');
   }
-  nm_connection_add_setting(con, news);
+  g_print("\n");
+
+  // g_assert_true(NM_VARIANT_TYPE_CONNECTION==g_variant_get_type(v));
+  // GVariant *new_settings=g_variant_new(
+    // NM_VARIANT_TYPE_SETTING === G_VARIANT_TYPE_VARDICT
+    // map { string => arr [ map { string => variant }
+
+    // NM_VARIANT_TYPE_CONNECTION
+    // arr [ map { string => arr [ map { string => variant } ] ]
+    // "a{sa{sv}}",
+  // );
+  // GError *e=NULL;
+  // if(!nm_connection_replace_settings(con, new_settings, &e)){
+  //   g_critical("err: %s\n", e->message);
+  //   exit(0);
+  // }
 
   // alternative
   // nm_connection_replace_settings()
 
   // GError *e=NULL;
-  if(!nm_remote_connection_commit_changes(r_con,TRUE,NULL,&e)){
-    g_critical("err: %s\n", e->message);
-    exit(0);
-  }
+  // if(!nm_remote_connection_commit_changes(r_con,TRUE,NULL,&e)){
+  //   g_critical("err: %s\n", e->message);
+  //   exit(0);
+  // }
 
   set_c=NULL;
   con=NULL;
