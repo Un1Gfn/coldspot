@@ -16,6 +16,11 @@ static inline void printROB(const char *const s){
     puts(s);
 }
 
+static gboolean predicate(const char *s){
+  return FALSE;
+  // return 0==strcmp(s, "autoconnect");
+}
+
 static inline void coldspot(const GPtrArray *cons){
 
   for(guint i=0; i<(cons->len); ++i){
@@ -52,15 +57,31 @@ static inline void coldspot(const GPtrArray *cons){
     });
 
     NMSetting *s=NM_SETTING(sc);
-    puts(nm_setting_to_string(s));
+    /**/puts(nm_setting_to_string(s));
     g_assert_true(nm_setting_verify(s, c, NULL));
 
+    // /usr/include/libnm/nm-core-types.h: typedef gboolean (*NMUtilsPredicateStr)(const char *str);
+    // nm_setting_option_clear_by_name(s, &predicate);
+    // nm_setting_option_clear_by_name(s, NULL);
+    // nm_setting_option_set(s, "autoconnect", NULL);
+    // /**/puts(nm_setting_to_string(s));
+
+    NMSetting *s2=nm_setting_duplicate(s);
+    nm_setting_option_set(s2, "autoconnect", NULL);
+    nm_setting_option_set_boolean(s2, "autoconnect", TRUE);
+    /**/puts(nm_setting_to_string(s2));
+
+
+    exit(0);
+
     nm_setting_option_set_boolean(s, "autoconnect", TRUE);
-    puts(nm_setting_to_string(s));
+    /**/puts(nm_setting_to_string(s));
+
     g_assert_true(nm_setting_verify(s, c, NULL));
 
     nm_connection_add_setting(c, s);
-    s=sc=NULL;
+    s=NULL;
+    sc=NULL;
 
     GError *e=NULL;
     if(!nm_remote_connection_commit_changes(rc,TRUE,NULL,&e)){
