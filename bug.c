@@ -51,21 +51,19 @@ void gv_check_print(GVariant *v){
 GVariant *copy_change(GVariant *old){
 
   GVariant *new=NULL;
-  GVariantBuilder *b=NULL;
+  // GVariantBuilder *b=NULL;
 
-  /*
-    gen builder
-    get section from old
-    add section to builder
-    populate builder to new
-  */
   {
 
     GVariantIter *iter=g_variant_iter_new(old); g_assert_true(iter);
-    GVariant *value=NULL;
-    while(g_variant_iter_loop(iter, "@{sa{sv}}", value)){
-      // g_assert_true(value);
-      g_print(".\n");
+    // GVariant *value=NULL;
+    gchar *str=NULL;
+    GVariantIter *iter2=NULL;
+    while(g_variant_iter_loop(iter, "{sa{sv}}", &str, &iter2)){
+      g_assert_true(str);
+      // g_print(".\n");
+      g_print("%s\n", str);
+      g_assert_true(iter2);
     }
     g_variant_iter_free(iter); iter=NULL;
   }
@@ -76,8 +74,8 @@ GVariant *copy_change(GVariant *old){
 
   // vv=g_variant_new("a{sa{sv}}", b0); b0=NULL;
 
+  new=old;
   return new;
-
 
 }
 
@@ -106,8 +104,7 @@ int main(){
   GVariant *new_v=copy_change(cur_v);
 
   // replace new settings
-  // e=NULL; if(!nm_connection_replace_settings(con, new_v, &e)){
-  e=NULL; if(!nm_connection_replace_settings(con, cur_v, &e)){
+  e=NULL; if(!nm_connection_replace_settings(con, new_v, &e)){
     g_critical("nm_connection_replace_settings() error: %s\n", e->message);
     exit(0);
   }
