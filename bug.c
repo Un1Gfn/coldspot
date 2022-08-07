@@ -13,7 +13,6 @@
 
 void gv_print(GVariant *v){
   g_print("%s\n", g_variant_get_type_string(v));
-  g_print("\n");
   g_print("%s\n", g_variant_print(v, /*type_annotate*/TRUE));
   g_print("\n");
 }
@@ -50,32 +49,66 @@ void gv_check_print(GVariant *v){
 
 GVariant *copy_change(GVariant *old){
 
-  GVariant *new=NULL;
-  // GVariantBuilder *b=NULL;
+  GVariantIter *section_it=NULL;
+  gchar        *section_name=NULL;
+  GVariant     *section=NULL;
+  GVariantIter *option_it=NULL;
+  gchar        *option_key=NULL;
+  GVariant     *option_value=NULL;
 
-  {
+  GVariantBuilder *b_opt2sec=NULL;
+  GVariantBuilder *b_sec2set=NULL;
+  GVariant *new_setting=NULL;
 
-    GVariantIter *iter=g_variant_iter_new(old); g_assert_true(iter);
-    // GVariant *value=NULL;
-    gchar *str=NULL;
-    GVariantIter *iter2=NULL;
-    while(g_variant_iter_loop(iter, "{sa{sv}}", &str, &iter2)){
-      g_assert_true(str);
-      // g_print(".\n");
-      g_print("%s\n", str);
-      g_assert_true(iter2);
+  b_opt2sec=g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
+  b_sec2set=g_variant_builder_new(G_VARIANT_TYPE("a{sa{sv}}"));
+
+  section_it=g_variant_iter_new(old); g_assert_true(section_it); while(g_variant_iter_loop(section_it, "{s@a{sv}}", &section_name, &section)){
+
+    g_assert_true(section_name); g_print("%s\n", section_name);
+    g_assert_true(section);
+
+    if(0==g_strcmp0("connection", section_name)){
+
+      // section "connection"
+
+      option_it=g_variant_iter_new(section); g_assert_true(option_it); while(g_variant_iter_loop(option_it, "{sv}", &option_key, &option_value)){
+        g_assert_true(option_key); g_print("  %s\n", option_key);
+        g_assert_true(option_value);
+        if(0==g_strcmp0("autoconnect", option_key)) option_value=g_variant_new_boolean(TRUE);
+        else g_variant_ref(option_value); // g_assert_true(!g_variant_is_floating(value)); g_variant_ref_sink(value);
+        // add option to section
+        g_variant_builder_add(b_opt2sec, "{sv}", option_key, option_value);
+      } // end loop over old options in old section "connection"
+
+      g_variant_iter_free(option_it); option_it=NULL;
+
+      // colloect options and export to section "connection" (modified)
+      // add section "connection" (modified) to b_sec2set
+      g_variant_builder_add(b_sec2set, "{sa{sv}}", "connection", b_opt2sec); b_opt2sec=NULL;
+
+
+    }else{
+
+      // sections other than "connection"
+
+      g_print("  [as-is]\n");
+      g_variant_ref(section);
+      g_variant_builder_add(b_sec2set, "{s@a{sv}}", section_name, section);
+
     }
-    g_variant_iter_free(iter); iter=NULL;
-  }
 
-  // b0=g_variant_builder_new(G_VARIANT_TYPE("a{sa{sv}}"));
 
-  // g_variant_builder_add(b, "{sa{sv}}", "connection", b1);
+  } // end loop over old sections in old setting
 
-  // vv=g_variant_new("a{sa{sv}}", b0); b0=NULL;
+  g_print("\n");
 
-  new=old;
-  return new;
+  g_variant_iter_free(section_it); section_it=NULL;
+  new_setting=g_variant_new("a{sa{sv}}", b_sec2set); b_sec2set=NULL;
+
+  // don't write to disk yet!
+  exit(0);
+  return new_setting;
 
 }
 
