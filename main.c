@@ -55,12 +55,15 @@ static inline void coldspot(const GPtrArray *cons){
     puts(nm_setting_to_string(s));
     g_assert_true(nm_setting_verify(s, c, NULL));
 
+    guint out_len=0;
+    g_assert_true(!nm_setting_option_get_all_names(s, &out_len));
+
     nm_setting_option_set_boolean(s, "autoconnect", TRUE);
     puts(nm_setting_to_string(s));
     g_assert_true(nm_setting_verify(s, c, NULL));
 
     nm_connection_add_setting(c, s);
-    s=sc=NULL;
+    s=NULL; sc=NULL;
 
     GError *e=NULL;
     if(!nm_remote_connection_commit_changes(rc,TRUE,NULL,&e)){
