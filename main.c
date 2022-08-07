@@ -61,10 +61,10 @@ static inline void coldspot(const GPtrArray *cons){
     g_assert_true(nm_setting_verify(s, c, NULL));
 
     // /usr/include/libnm/nm-core-types.h: typedef gboolean (*NMUtilsPredicateStr)(const char *str);
-    // nm_setting_option_clear_by_name(s, &predicate);
-    // nm_setting_option_clear_by_name(s, NULL);
-    // nm_setting_option_set(s, "autoconnect", NULL);
-    // /**/puts(nm_setting_to_string(s));
+    nm_setting_option_clear_by_name(s, &predicate);
+    nm_setting_option_clear_by_name(s, NULL);
+    nm_setting_option_set(s, "autoconnect", NULL);
+    /**/puts(nm_setting_to_string(s));
 
     NMSetting *s2=nm_setting_duplicate(s);
     nm_setting_option_set(s2, "autoconnect", NULL);
