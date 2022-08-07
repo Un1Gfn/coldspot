@@ -11,14 +11,14 @@
 #define FMT "a{sa{sv}}"
 #define PARSE "{'connection': {'autoconnect': <true>}}"
 
-void gv_check_print(GVariant *v){
+void gv_print(GVariant *v){
+  g_print("%s\n", g_variant_get_type_string(v));
+  g_print("\n");
+  g_print("%s\n", g_variant_print(v, /*type_annotate*/TRUE));
+  g_print("\n");
+}
 
-  inline void gv_print(GVariant *v){
-    g_print("%s\n", g_variant_get_type_string(v));
-    g_print("\n");
-    g_print("%s\n", g_variant_print(v, /*type_annotate*/TRUE));
-    g_print("\n");
-  }
+void gv_check_print(GVariant *v){
 
   // check
   g_assert_true(g_variant_check_format_string(v, FMT, TRUE));
@@ -86,37 +86,29 @@ int main(){
 
   GError *e=NULL;
 
-  // {
-  //   gv_new_autoconnect_true();
-  //   return 0;
-  // }
-
   g_print("\n");
   
   NMClient *client=nm_client_new(NULL, NULL); g_assert_true(client);
   g_print("NetworkManager version: %s\n", nm_client_get_version(client));
+  g_print("\n");
 
   // get connection "Hotspot"
   NMRemoteConnection *r_con=nm_client_get_connection_by_uuid(client, "22b985e1-e00e-4e0a-be92-8d9de9903968"); g_assert_true(r_con);
   NMConnection *con=NM_CONNECTION(r_con);
   NMSettingConnection *set_c=nm_connection_get_setting_connection(con); g_assert_true(set_c);
 
-  // list existing settings in all sections
-  // GVariant *v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
-  // gv_check_print(v);
+  // generate new settings with autoconnect replaced
+  GVariant *old_v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
+  gv_check_print(old_v);
 
   // replace settings
-  GVariant *new_settings=gv_new_autoconnect_true(); g_assert_true(new_settings);
-  // {
-  //   g_print("%s\n", g_variant_type_dup_string(NM_VARIANT_TYPE_SETTING));
-  //   g_print("%s\n", g_variant_type_dup_string(NM_VARIANT_TYPE_CONNECTION));
-  // }
-  // g_assert_true(NM_VARIANT_TYPE_CONNECTION==g_variant_get_type(new_settings)); // pitfall!
-  g_assert_true(g_variant_type_equal(NM_VARIANT_TYPE_CONNECTION, g_variant_get_type(new_settings))); // correct
-  e=NULL; if(!nm_connection_replace_settings(con, new_settings, &e)){
+  g_assert_true(g_variant_type_equal(NM_VARIANT_TYPE_CONNECTION, g_variant_get_type(old_v))); // correct
+  e=NULL; if(!nm_connection_replace_settings(con, old_v, &e)){
     g_critical("nm_connection_replace_settings() error: %s\n", e->message);
     exit(0);
   }
+
+  
 
   // save to disk
   e=NULL; if(!nm_remote_connection_commit_changes(r_con, TRUE, NULL, &e)){
@@ -134,3 +126,49 @@ int main(){
   return 0;
   
 }
+
+// GVariantDict *new_d=new_v;
+// {
+//   GVariant *data;
+//   gint value = 1;
+//   gint max = 3;
+//   data = g_variant_new_parsed ("(%o, {'brightness': {'value': <%i>, 'max': <%i>}})",
+//                                "/object/path", value, max);
+//   gv_print(data);
+//   {
+//     GVariant *params;
+//     GVariant *p_brightness;
+//     gchar *obj;
+//     gint p_max;
+//     g_variant_get (data, "(o@a{?*})", &obj, &params);
+//     gv_print(params);
+//     g_print ("object_path: %s\n", obj);
+//     p_brightness = g_variant_lookup_value (params, "brightness", G_VARIANT_TYPE_VARDICT);
+//     gv_print(p_brightness);
+//     {
+//       GVariant *ref=NULL;
+//       g_variant_lookup (p_brightness, "max", "@i", &ref);
+//       g_assert_true(g_variant_is_floating(g_variant_new_int32(77)));
+//       g_assert_true(!g_variant_is_floating(ref));
+//       g_print ("max: %d\n", g_variant_get_int32(ref));
+//     }
+//     g_variant_lookup (p_brightness, "max", "i", &p_max);
+//     g_print ("max: %d\n", p_max);
+//     exit(0);
+//   }
+// }
+
+// {
+//   GVariant *ref=NULL;
+//   gpointer *buf=g_malloc0(1024*1024);
+//   g_assert_true(g_variant_lookup(new_v, "connection", "{sa{sv}}", buf, buf, buf, buf, buf, buf));
+//   g_assert_true(ref);
+//   gv_check_print(ref);
+//   exit(0);
+// }
+
+// {
+//   g_print("%s\n", g_variant_type_dup_string(NM_VARIANT_TYPE_SETTING));
+//   g_print("%s\n", g_variant_type_dup_string(NM_VARIANT_TYPE_CONNECTION));
+// }
+// g_assert_true(NM_VARIANT_TYPE_CONNECTION==g_variant_get_type(new_settings)); // pitfall!
