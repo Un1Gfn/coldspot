@@ -8,26 +8,60 @@
 #include <ctype.h>
 #include <stdio.h>
 
-// void func(
-//   __attribute__((unused)) NMSetting *setting,
-//   const char *key,
-//   __attribute__((unused)) const GValue *value,
-//   __attribute__((unused)) GParamFlags flags,
-//   __attribute__((unused)) gpointer user_data
-// ){
-//   // g_print(".%s.\n", key);
-//   if(!g_strcmp0("autoconnect", key)){
-//     g_assert_true(!user_data);
-//     g_print("0x%X\n", flags);
-//     g_assert_true(G_VALUE_HOLDS_BOOLEAN(value));
-//     g_value_set_boolean(value, TRUE);
-//     g_print("%d\n", g_value_get_boolean(value));
-//   }
-// }
+#define FMT "a{sa{sv}}"
+#define PARSE "{'connection': {'autoconnect': <true>}}"
+
+
+void gv_test(GVariant *v){
+  g_print("%s\n", g_variant_get_type_string(v));
+  g_print("%s\n", g_variant_print(v, /*type_annotate*/TRUE));
+  g_print("\n");
+}
+
+GVariant *gv_new(){
+
+  // [ { s => [ s => v ] } ]
+  // [{s => [s => v]}]
+  // [{s=>[s=>v]}]
+  // "Strings"
+  // "Variants"
+  // "Arrays"
+  // "Dictionaries"
+
+  // g_variant_new_parsed() // https://docs.gtk.org/glib/gvariant-format-strings.html#examples_8
+
+  GVariantBuilder *b1=NULL;
+  GVariantBuilder *b0=NULL;
+  GVariant *vv=NULL;
+
+  // b1 def    "a{sv}"
+  // b1 add     "{sv}"  <- "autoconnect" + gvariantboolean(TRUE)
+  // b0 def "a{sa{sv}}"
+  // b0 add  "{sa{sv}}" <- "connection" + b1
+  // vv def "a{sa{sv}}" <- b0
+  b1=g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
+  g_variant_builder_add(b1, "{sv}", "autoconnect", g_variant_new_boolean(TRUE));
+  b0=g_variant_builder_new(G_VARIANT_TYPE("a{sa{sv}}"));
+  g_variant_builder_add(b0, "{sa{sv}}", "connection", b1);
+  vv=g_variant_new("a{sa{sv}}", b0); b0=NULL;
+
+  gv_test(vv);
+  g_assert_true(0==g_strcmp0(PARSE, g_variant_print(vv, /*type_annotate*/TRUE)));
+
+  return vv;
+
+}
 
 void gv_print(GVariant *v){
 
+  // g_print("%s\n", );
+  g_assert_true(g_variant_check_format_string(v, FMT, TRUE));
+  g_assert_true(0==g_strcmp0(FMT, g_variant_get_type_string(v)));
+  g_print("%s\n", FMT);
+  g_print("\n");
+
   g_print("%s\n", g_variant_print(v, TRUE));
+  g_print("\n");
 
   gsize sz=g_variant_get_size(v);
   g_print("%lu\n", sz);
@@ -42,11 +76,18 @@ void gv_print(GVariant *v){
     putchar(isprint(ch)?ch:'.');
   }
   g_print("\n");
+  g_print("\n");
 
 }
 
 int main(){
-  // g_assert(0==getuid()&&argc==2&&argv[1]);
+
+  {
+    gv_new();
+    return 0;
+  }
+
+  g_print("\n");
   
   NMClient *client=nm_client_new(NULL, NULL); g_assert_true(client);
   g_print("NetworkManager version: %s\n", nm_client_get_version(client));
@@ -59,6 +100,8 @@ int main(){
 
   GVariant *v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
   gv_print(v);
+
+  gv_new();
 
   // g_assert_true(NM_VARIANT_TYPE_CONNECTION==g_variant_get_type(v));
   // GVariant *new_settings=g_variant_new(
@@ -84,6 +127,7 @@ int main(){
   g_object_unref(client); client=NULL;
 
   g_print("bye\n");
+  g_print("\n");
   return 0;
   
 }
