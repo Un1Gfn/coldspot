@@ -48,37 +48,36 @@ void gv_check_print(GVariant *v){
 
 }
 
-GVariant *gv_new_autoconnect_true(){
+GVariant *copy_change(GVariant *old){
 
-  // [ { s => [ s => v ] } ]
-  // [{s => [s => v]}]
-  // [{s=>[s=>v]}]
-  // "Strings"
-  // "Variants"
-  // "Arrays"
-  // "Dictionaries"
+  GVariant *new=NULL;
+  GVariantBuilder *b=NULL;
 
-  // g_variant_new_parsed() // https://docs.gtk.org/glib/gvariant-format-strings.html#examples_8
+  /*
+    gen builder
+    get section from old
+    add section to builder
+    populate builder to new
+  */
+  {
 
-  GVariantBuilder *b1=NULL;
-  GVariantBuilder *b0=NULL;
-  GVariant *vv=NULL;
+    GVariantIter *iter=g_variant_iter_new(old); g_assert_true(iter);
+    GVariant *value=NULL;
+    while(g_variant_iter_loop(iter, "@{sa{sv}}", value)){
+      // g_assert_true(value);
+      g_print(".\n");
+    }
+    g_variant_iter_free(iter); iter=NULL;
+  }
 
-  // b1 def    "a{sv}"
-  // b1 add     "{sv}"  <- "autoconnect" + gvariantboolean(TRUE)
-  // b0 def "a{sa{sv}}"
-  // b0 add  "{sa{sv}}" <- "connection" + b1
-  // vv def "a{sa{sv}}" <- b0
-  b1=g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
-  g_variant_builder_add(b1, "{sv}", "autoconnect", g_variant_new_boolean(TRUE));
-  b0=g_variant_builder_new(G_VARIANT_TYPE("a{sa{sv}}"));
-  g_variant_builder_add(b0, "{sa{sv}}", "connection", b1);
-  vv=g_variant_new("a{sa{sv}}", b0); b0=NULL;
+  // b0=g_variant_builder_new(G_VARIANT_TYPE("a{sa{sv}}"));
 
-  gv_check_print(vv);
-  g_assert_true(0==g_strcmp0(PARSE, g_variant_print(vv, /*type_annotate*/TRUE)));
+  // g_variant_builder_add(b, "{sa{sv}}", "connection", b1);
 
-  return vv;
+  // vv=g_variant_new("a{sa{sv}}", b0); b0=NULL;
+
+  return new;
+
 
 }
 
@@ -97,18 +96,21 @@ int main(){
   NMConnection *con=NM_CONNECTION(r_con);
   NMSettingConnection *set_c=nm_connection_get_setting_connection(con); g_assert_true(set_c);
 
-  // generate new settings with autoconnect replaced
-  GVariant *old_v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
-  gv_check_print(old_v);
+  // get current settings in all sections
+  GVariant *cur_v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
+  gv_check_print(cur_v);
+  g_assert_true(g_variant_type_equal(NM_VARIANT_TYPE_CONNECTION, g_variant_get_type(cur_v)));
 
-  // replace settings
-  g_assert_true(g_variant_type_equal(NM_VARIANT_TYPE_CONNECTION, g_variant_get_type(old_v))); // correct
-  e=NULL; if(!nm_connection_replace_settings(con, old_v, &e)){
+  // generate new settings
+  // GVariant *new_v=cur_v;
+  GVariant *new_v=copy_change(cur_v);
+
+  // replace new settings
+  // e=NULL; if(!nm_connection_replace_settings(con, new_v, &e)){
+  e=NULL; if(!nm_connection_replace_settings(con, cur_v, &e)){
     g_critical("nm_connection_replace_settings() error: %s\n", e->message);
     exit(0);
   }
-
-  
 
   // save to disk
   e=NULL; if(!nm_remote_connection_commit_changes(r_con, TRUE, NULL, &e)){
@@ -126,6 +128,40 @@ int main(){
   return 0;
   
 }
+
+// GVariant *gv_new_autoconnect_true(){
+
+//   // [ { s => [ s => v ] } ]
+//   // [{s => [s => v]}]
+//   // [{s=>[s=>v]}]
+//   // "Strings"
+//   // "Variants"
+//   // "Arrays"
+//   // "Dictionaries"
+
+//   // g_variant_new_parsed() // https://docs.gtk.org/glib/gvariant-format-strings.html#examples_8
+
+//   GVariantBuilder *b1=NULL;
+//   GVariantBuilder *b0=NULL;
+//   GVariant *vv=NULL;
+
+//   // b1 def    "a{sv}"
+//   // b1 add     "{sv}"  <- "autoconnect" + gvariantboolean(TRUE)
+//   // b0 def "a{sa{sv}}"
+//   // b0 add  "{sa{sv}}" <- "connection" + b1
+//   // vv def "a{sa{sv}}" <- b0
+//   b1=g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
+//   g_variant_builder_add(b1, "{sv}", "autoconnect", g_variant_new_boolean(TRUE));
+//   b0=g_variant_builder_new(G_VARIANT_TYPE("a{sa{sv}}"));
+//   g_variant_builder_add(b0, "{sa{sv}}", "connection", b1);
+//   vv=g_variant_new("a{sa{sv}}", b0); b0=NULL;
+
+//   gv_check_print(vv);
+//   g_assert_true(0==g_strcmp0(PARSE, g_variant_print(vv, /*type_annotate*/TRUE)));
+
+//   return vv;
+
+// }
 
 // GVariantDict *new_d=new_v;
 // {
