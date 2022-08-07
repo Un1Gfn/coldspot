@@ -138,10 +138,10 @@ int main(){
   GVariant *new_v=copy_change(cur_v);
   gv_print(cur_v);
   gv_print(new_v);
-  {
-    // don't write to disk yet!
-    exit(0);
-  }
+  // {
+  //   // don't write to disk yet!
+  //   exit(0);
+  // }
 
   // replace new settings
   e=NULL; if(!nm_connection_replace_settings(con, new_v, &e)){
