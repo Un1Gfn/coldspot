@@ -75,8 +75,11 @@ GVariant *copy_change(GVariant *old){
       option_it=g_variant_iter_new(section); g_assert_true(option_it); while(g_variant_iter_loop(option_it, "{sv}", &option_key, &option_value)){
         g_assert_true(option_key); g_print("  %s\n", option_key);
         g_assert_true(option_value);
-        if(0==g_strcmp0("autoconnect", option_key)) option_value=g_variant_new_boolean(TRUE);
-        else g_variant_ref(option_value); // g_assert_true(!g_variant_is_floating(value)); g_variant_ref_sink(value);
+        if(0==g_strcmp0("autoconnect", option_key)){
+          option_value=g_variant_ref_sink(g_variant_new_boolean(TRUE));
+        }else{
+          g_variant_ref(option_value); // g_assert_true(!g_variant_is_floating(value)); g_variant_ref_sink(value);
+        }
         // add option to section
         g_variant_builder_add(b_opt2sec, "{sv}", option_key, option_value);
       } // end loop over old options in old section "connection"
@@ -106,8 +109,6 @@ GVariant *copy_change(GVariant *old){
   g_variant_iter_free(section_it); section_it=NULL;
   new_setting=g_variant_new("a{sa{sv}}", b_sec2set); b_sec2set=NULL;
 
-  // don't write to disk yet!
-  exit(0);
   return new_setting;
 
 }
@@ -135,6 +136,12 @@ int main(){
   // generate new settings
   // GVariant *new_v=cur_v;
   GVariant *new_v=copy_change(cur_v);
+  gv_print(cur_v);
+  gv_print(new_v);
+  {
+    // don't write to disk yet!
+    exit(0);
+  }
 
   // replace new settings
   e=NULL; if(!nm_connection_replace_settings(con, new_v, &e)){
