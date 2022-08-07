@@ -1,6 +1,6 @@
 PORT:=17629
-LIBS:=libnm libelogind
 CC:=gcc -g -Wall -Wextra -std=gnu11
+LIBS:=libnm libelogind
 PC_C:=$(shell pkg-config --cflags $(LIBS))
 PC_L:=$(shell pkg-config --libs   $(LIBS))
 BIN:=coldspot

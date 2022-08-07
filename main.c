@@ -16,10 +16,10 @@ static inline void printROB(const char *const s){
     puts(s);
 }
 
-static gboolean predicate(const char *s){
-  return FALSE;
-  // return 0==strcmp(s, "autoconnect");
-}
+// static gboolean predicate(const char *s){
+//   return FALSE;
+//   // return 0==strcmp(s, "autoconnect");
+// }
 
 static inline void coldspot(const GPtrArray *cons){
 
@@ -70,7 +70,6 @@ static inline void coldspot(const GPtrArray *cons){
     nm_setting_option_set(s2, "autoconnect", NULL);
     nm_setting_option_set_boolean(s2, "autoconnect", TRUE);
     /**/puts(nm_setting_to_string(s2));
-
 
     exit(0);
 

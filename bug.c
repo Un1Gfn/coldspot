@@ -25,19 +25,10 @@
 //   }
 // }
 
-int main(){
-  // g_assert(0==getuid()&&argc==2&&argv[1]);
-  
-  NMClient *client=nm_client_new(NULL, NULL); g_assert_true(client);
-  g_print("NetworkManager version: %s\n", nm_client_get_version(client));
+void gv_print(GVariant *v){
 
-  // Hotspot
-  NMRemoteConnection *r_con=nm_client_get_connection_by_uuid(client, "22b985e1-e00e-4e0a-be92-8d9de9903968"); g_assert_true(r_con);
-  NMConnection *con=NM_CONNECTION(r_con);
+  g_print("%s\n", g_variant_print(v, TRUE));
 
-  NMSettingConnection *set_c=nm_connection_get_setting_connection(con); g_assert_true(set_c);
-
-  GVariant *v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
   gsize sz=g_variant_get_size(v);
   g_print("%lu\n", sz);
   gchar data[sz+1]; bzero(data, sz+1);
@@ -52,14 +43,25 @@ int main(){
   }
   g_print("\n");
 
+}
+
+int main(){
+  // g_assert(0==getuid()&&argc==2&&argv[1]);
+  
+  NMClient *client=nm_client_new(NULL, NULL); g_assert_true(client);
+  g_print("NetworkManager version: %s\n", nm_client_get_version(client));
+
+  // Hotspot
+  NMRemoteConnection *r_con=nm_client_get_connection_by_uuid(client, "22b985e1-e00e-4e0a-be92-8d9de9903968"); g_assert_true(r_con);
+  NMConnection *con=NM_CONNECTION(r_con);
+
+  NMSettingConnection *set_c=nm_connection_get_setting_connection(con); g_assert_true(set_c);
+
+  GVariant *v=nm_connection_to_dbus(con, NM_CONNECTION_SERIALIZE_ALL);
+  gv_print(v);
+
   // g_assert_true(NM_VARIANT_TYPE_CONNECTION==g_variant_get_type(v));
   // GVariant *new_settings=g_variant_new(
-    // NM_VARIANT_TYPE_SETTING === G_VARIANT_TYPE_VARDICT
-    // map { string => arr [ map { string => variant }
-
-    // NM_VARIANT_TYPE_CONNECTION
-    // arr [ map { string => arr [ map { string => variant } ] ]
-    // "a{sa{sv}}",
   // );
   // GError *e=NULL;
   // if(!nm_connection_replace_settings(con, new_settings, &e)){
