@@ -1,23 +1,38 @@
-PORT:=17629
-CC:=gcc -g -Wall -Wextra -std=gnu11
-LIBS:=libnm libelogind
-PC_C:=$(shell pkg-config --cflags $(LIBS))
-PC_L:=$(shell pkg-config --libs   $(LIBS))
-BIN:=coldspot
+include ./transferconf
+N:=ninja -j4 -v -C $(O)
 
-default: run
+default: pingtransfer
 
-run: $(BIN)
+# run:
+# env G_DEBUG=fatal-warnings GTK_DEBUG=interactive $(BIN)
+
+pingtransfer: build
 	[ aarch64 = "$(shell uname -m)" ]
-	@echo 'run'
+	@echo $@...
 	@echo 'foo' | busybox nc -w0 127.0.0.1 $(PORT)
 
-$(BIN): main.c.o hier.c.o
-	:; $(CC) -o $@ $^ $(PC_L)
+# order-only prerequisite
+# no rebuild on outdate
+build: | $(O)
+	[ aarch64 = "$(shell uname -m)" ]
+# 	meson compile -v -C $(O)
+	$(N)
 
-%.c.o: %.c
-	:; $(CC) -c $(PC_C) -o $@ $^
+setup: | $(O)
 
+$(O):
+	[ aarch64 = "$(shell uname -m)" ]
+	@echo "/Makefile --> /meson.build --> /builddir/build.ninja"
+	@rm -rf $(O)
+	meson setup $(O) .
+
+# gdb: build
+# 	gdb -ex run $(O)/backlight_gui
+
+# https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Makefile?h=v5.19#n1561
 clean:
-	@rm -fv $(BIN)
-	@rm -fv *.c.o
+	{ [ -e $(O) ] && $(N) -t clean; } || true
+distclean:
+	@rm -rfv $(O)/
+mrproper:
+	@rm -rfv $(O)/

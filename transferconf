@@ -1,0 +1,7 @@
+#!/dev/null
+
+# included by Makefile and transfer.sh
+
+PORT=17629
+O=builddir
+BIN=coldspot
