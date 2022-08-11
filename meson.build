@@ -6,7 +6,7 @@ project('coldspot', 'c',
     'buildtype=debug',
     'debug=true',
     'strip=false',
-    'warning_level=4',
+    'warning_level=3',
     'werror=true',
     'b_lto=true',
     'b_ndebug=false',
@@ -16,6 +16,8 @@ project('coldspot', 'c',
   meson_version: '>=0.62.0',
   version: '0.1',
 )
+
+assert('UTC'==run_command('date', '+%Z', check: true).stdout().strip())
 
 add_global_arguments('-D_GNU_SOURCE',
                      # '-Wextra',

@@ -102,34 +102,53 @@
 //   }
 // }
 
+static inline void buildtime(){
+  const char *const utc=__TIME__;
+  g_print("[build @ %s UTC]\n", utc);
+  // {
+  //   struct tm tm={0};
+  //   g_assert_true(utc+2+1+2+1+2==strptime(utc, "%T", &tm));
+  //   //     strptime()    mktime        gmtime    strftime
+  //   // str            tm        time_t        tm          time_t
+  //   char local[9]={0};
+  //   g_assert_true(8==strftime(local, 9, "%T", gmtime(&(time_t){mktime(&tm)})));
+  //   g_print("%s\n", local);
+  //   g_print("\n");
+  //   exit(0);
+  // }
+}
+
 int main(){
 
   g_print("\n");
 
-  g_print("[build@%s]\n", __TIME__);
+  buildtime();
   g_print("\n");
 
   // g_assert_true(0==setenv("G_DEBUG", "fatal-warnings", 1));;
   NMClient *client=nm_client_new2();
 
-  // const GPtrArray *devs=nm_client_get_all_devices(client); // nm_client_get_devices()
-  // gboolean uniq_wifi_found=FALSE;
-  // for(guint i=0; i<(devs->len); ++i){
-  //   NMDevice *const d=(devs->pdata)[i];
-  //   g_assert_true(nm_device_is_real(d));
-  //   g_assert_true(!nm_device_get_firmware_missing(d));
-  //   g_assert_true(!strcmp(nm_device_get_iface(d), nm_device_get_description(d)));
-  //   // nm_device_set_autoconnect()
-  //   if(NM_DEVICE_TYPE_WIFI==nm_device_get_device_type(d)){
-  //     g_assert_true(!uniq_wifi_found); uniq_wifi_found=TRUE;
-  //     g_assert_true(nm_device_get_managed(d));
-  //     g_assert_true(!strcmp("wlan0", nm_device_get_iface(d)));
-  //     // coldspot(nm_device_get_available_connections(d));
-  //     GPtrArray *wificon=nm_device_filter_connections(d, nm_client_get_connections(client));
-  //     coldspot(wificon);
-  //     g_ptr_array_unref(wificon); wificon=NULL;
-  //   }
-  // }
+  {
+    const GPtrArray *devs=nm_client_get_all_devices(client); // nm_client_get_devices()
+    gboolean uniq_wifi_found=FALSE;
+    for(guint i=0; i<(devs->len); ++i){
+      NMDevice *const d=(devs->pdata)[i];
+      g_assert_true(nm_device_is_real(d));
+      g_assert_true(!nm_device_get_firmware_missing(d));
+      g_assert_true(!strcmp(nm_device_get_iface(d), nm_device_get_description(d)));
+      // nm_device_set_autoconnect()
+      if(NM_DEVICE_TYPE_WIFI==nm_device_get_device_type(d)){
+        g_assert_true(!uniq_wifi_found); uniq_wifi_found=TRUE;
+        g_assert_true(nm_device_get_managed(d));
+        g_assert_true(!strcmp("wlan0", nm_device_get_iface(d)));
+        // coldspot(nm_device_get_available_connections(d));
+        GPtrArray *wificon=nm_device_filter_connections(d, nm_client_get_connections(client));
+        // coldspot(wificon);
+        g_ptr_array_unref(wificon); wificon=NULL;
+      }
+    }
+  }
+  // NMDevice *const d=(devs->pdata)[i];
 
   g_object_unref(client); client=NULL; return 0;
 
