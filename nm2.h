@@ -2,4 +2,5 @@
 
 #include <NetworkManager.h>
 
-NMClient *nm_client_new2();
+NMClient *nm2_init();
+GPtrArray *nm2_getwificons(NMClient*);

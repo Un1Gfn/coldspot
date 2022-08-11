@@ -126,29 +126,10 @@ int main(){
   g_print("\n");
 
   // g_assert_true(0==setenv("G_DEBUG", "fatal-warnings", 1));;
-  NMClient *client=nm_client_new2();
+  NMClient *client=nm2_init();
 
-  {
-    const GPtrArray *devs=nm_client_get_all_devices(client); // nm_client_get_devices()
-    gboolean uniq_wifi_found=FALSE;
-    for(guint i=0; i<(devs->len); ++i){
-      NMDevice *const d=(devs->pdata)[i];
-      g_assert_true(nm_device_is_real(d));
-      g_assert_true(!nm_device_get_firmware_missing(d));
-      g_assert_true(!strcmp(nm_device_get_iface(d), nm_device_get_description(d)));
-      // nm_device_set_autoconnect()
-      if(NM_DEVICE_TYPE_WIFI==nm_device_get_device_type(d)){
-        g_assert_true(!uniq_wifi_found); uniq_wifi_found=TRUE;
-        g_assert_true(nm_device_get_managed(d));
-        g_assert_true(!strcmp("wlan0", nm_device_get_iface(d)));
-        // coldspot(nm_device_get_available_connections(d));
-        GPtrArray *wificon=nm_device_filter_connections(d, nm_client_get_connections(client));
-        // coldspot(wificon);
-        g_ptr_array_unref(wificon); wificon=NULL;
-      }
-    }
-  }
-  // NMDevice *const d=(devs->pdata)[i];
+  GPtrArray *wificons=nm2_getwificons(client);
+  g_ptr_array_unref(wificons); wificons=NULL;
 
   g_object_unref(client); client=NULL; return 0;
 
