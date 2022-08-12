@@ -22,6 +22,7 @@ assert('UTC'==run_command('date', '+%Z', check: true).stdout().strip())
 add_global_arguments('-D_GNU_SOURCE',
                      # '-Wextra',
                      '-Wdeprecated-declarations',
+                     '-Wno-error=deprecated-declarations',
                      '-DG_ENABLE_DEBUG', # /usr/include/gtk-3.0/gtk/gtkdebug.h gtk_set_debug_flags()
                      '-Winline',
                      '-Wshadow',
