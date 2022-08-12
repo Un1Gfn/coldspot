@@ -32,6 +32,7 @@ $(O):
 # https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Makefile?h=v5.19#n1561
 clean:
 	{ [ -e $(O) ] && $(N) -t clean; } || true
+	@rm -fv cscope.out
 distclean:
 	@rm -rfv $(O)/
 mrproper:

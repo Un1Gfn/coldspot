@@ -1,8 +1,6 @@
 #pragma once
 
-#include <NetworkManager.h>
+#include <glib.h>
 
-NMClient *nm2_init();
-GPtrArray *nm2_getwificons(NMClient*);
-void nm2_autoconnect_toggle(NMClient*, NMConnection*, const gboolean);
-void nm2_wireless_disable(NMClient **const);
+void nm2_demo1_gvtrel();
+void nm2(const gboolean);
