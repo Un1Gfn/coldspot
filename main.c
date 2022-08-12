@@ -121,31 +121,24 @@ static inline void buildtime(){
 
 int main(const int argc, const char *const argv[]){
 
-  // g_assert_true root or active session
-  // ...
+  g_print("\n");
 
   g_assert_true(2==argc);
   g_assert_true(argv[1]&&argv[1][0]);
 
-  g_print("\n");
+  // g_assert_true root or active session
+  // ...
 
   buildtime();
   g_print("\n");
 
-  // g_assert_true(0==setenv("G_DEBUG", "fatal-warnings", 1));;
   NMClient *client=nm2_init();
 
-  g_assert_true(nm_client_wireless_hardware_get_enabled(client));
-  while(nm_client_wireless_get_enabled(client)){
-    g_print("disabling...\n");
-    nm_client_wireless_set_enabled(client, FALSE); // g_print(":; nmcli radio wifi off\n"); g_print("\n");
-    sleep(1);
-    g_object_unref(client); client=NULL; client=nm2_init();
-  }
+  nm2_wireless_disable(&client);
 
   GPtrArray *wificons=nm2_getwificons(client);
   for(guint i=0; i<(wificons->len); ++i)
-    nm2_toggle(client, wificons->pdata[i], (0==g_strcmp0("ap", argv[1])));
+    nm2_autoconnect_toggle(client, wificons->pdata[i], (0==g_strcmp0("ap", argv[1])));
   g_ptr_array_unref(wificons); wificons=NULL;
 
   g_assert_true(!nm_client_wireless_get_enabled(client));

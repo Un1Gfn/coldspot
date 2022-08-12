@@ -106,7 +106,7 @@ GVariant *copy_change(GVariant *old, const gboolean autoconnect){
 
 }
 
-void nm2_toggle(__attribute__((unused)) NMClient *c, NMConnection *con, const gboolean auto_ap_manual_else){
+void nm2_autoconnect_toggle(__attribute__((unused)) NMClient *c, NMConnection *con, const gboolean auto_ap_manual_else){
 
     g_assert_true(nm_connection_is_type(con, NM_SETTING_WIRELESS_SETTING_NAME));
     g_assert_true(nm_connection_verify(con, NULL));
@@ -139,4 +139,14 @@ void nm2_toggle(__attribute__((unused)) NMClient *c, NMConnection *con, const gb
 
     }
 
+}
+
+void nm2_wireless_disable(NMClient **const cc){
+  g_assert_true(nm_client_wireless_hardware_get_enabled(*cc));
+  while(nm_client_wireless_get_enabled(*cc)){
+    g_print("disabling...\n");
+    nm_client_wireless_set_enabled(*cc, FALSE); // g_print(":; nmcli radio wifi off\n"); g_print("\n");
+    sleep(1);
+    g_object_unref(*cc); *cc=NULL; *cc=nm2_init();
+  }
 }
