@@ -35,7 +35,7 @@ GPtrArray *nm2_getwificons(NMClient *c){
   return r;
 }
 
-GVariant *copy_change(GVariant *old, __attribute__((unused)) const gboolean autoconnect){
+GVariant *copy_change(GVariant *old, const gboolean autoconnect){
 
   GVariantIter *section_it=NULL;
   gchar        *section_name=NULL;
@@ -60,17 +60,23 @@ GVariant *copy_change(GVariant *old, __attribute__((unused)) const gboolean auto
 
       // section "connection"
 
+      gboolean opt_autoconnect_found=FALSE;
+
       option_it=g_variant_iter_new(section); g_assert_true(option_it); while(g_variant_iter_loop(option_it, "{sv}", &option_key, &option_value)){
         g_assert_true(option_key); g_print("  %s\n", option_key);
         g_assert_true(option_value);
         if(0==g_strcmp0("autoconnect", option_key)){
-          option_value=g_variant_ref_sink(g_variant_new_boolean(TRUE));
+          g_assert_true(!opt_autoconnect_found); opt_autoconnect_found=TRUE;
+          option_value=g_variant_ref_sink(g_variant_new_boolean(autoconnect));
         }else{
           g_variant_ref(option_value); // g_assert_true(!g_variant_is_floating(value)); g_variant_ref_sink(value);
         }
         // add option to section
         g_variant_builder_add(b_opt2sec, "{sv}", option_key, option_value);
       } // end loop over old options in old section "connection"
+
+      if(!opt_autoconnect_found)
+        g_variant_builder_add(b_opt2sec, "{sv}", "autoconnect", g_variant_ref_sink(g_variant_new_boolean(autoconnect)));
 
       g_variant_iter_free(option_it); option_it=NULL;
 
