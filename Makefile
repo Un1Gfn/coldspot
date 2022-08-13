@@ -16,6 +16,7 @@ pingtransfer: build
 build: | $(O)
 	[ aarch64 = "$(shell uname -m)" ]
 # 	meson compile -v -C $(O)
+	touch buildtime.c
 	$(N)
 
 setup: | $(O)

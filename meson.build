@@ -31,9 +31,11 @@ add_global_arguments('-D_GNU_SOURCE',
                      language: 'c')
 
 executable('coldspot',
-  'main.c',
+  'buildtime.c',
   'nm2.c',
-dependencies: [
-  dependency('libnm'),
-  dependency('libelogind'),
-])
+  'main.c',
+  dependencies: [
+    dependency('libnm'),
+    dependency('libelogind'),
+  ]
+)

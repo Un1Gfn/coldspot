@@ -12,21 +12,26 @@ static inline NMClient *nm2_init(){
   return c;
 }
 
-// Returns: (transfer full) (element-type NMConnection): array of all wifi connections
-static inline GPtrArray *nm2_getwificons(NMClient *c){
-  GPtrArray *r=NULL;
-  const GPtrArray *devs=nm_client_get_all_devices(c); // nm_client_get_devices()
-  gboolean uniq_wifidev_found=FALSE;
+static inline void nm2_get_wwan_wifi(NMClient *const c, NMDevice **const wwanmodem, NMDevice **const wlanwifi){
+  const GPtrArray *devs=nm_client_get_all_devices(c);
+  gboolean uniq_wwanmodem_found=FALSE;
+  gboolean uniq_wlanwifi_found=FALSE;
   for(guint i=0; i<(devs->len); ++i){
     NMDevice *const d=(devs->pdata)[i];
-    g_assert_true(nm_device_is_real(d)); g_assert_true(!nm_device_get_firmware_missing(d)); g_assert_true(0==g_strcmp0(nm_device_get_iface(d), nm_device_get_description(d)));
-    if(NM_DEVICE_TYPE_WIFI==nm_device_get_device_type(d)){
-      g_assert_true(!uniq_wifidev_found); uniq_wifidev_found=TRUE;
-      g_assert_true(nm_device_get_managed(d)); g_assert_true(0==g_strcmp0("wlan0", nm_device_get_iface(d)));
-      r=nm_device_filter_connections(d, nm_client_get_connections(c)); g_assert_true(r && 1<=(r->len));
+    g_assert_true(nm_device_is_real(d));
+    g_assert_true(!nm_device_get_firmware_missing(d));
+    const char *const iface=nm_device_get_iface(d); g_assert_true(0==g_strcmp0(iface, nm_device_get_description(d)));
+    switch(nm_device_get_device_type(d)){
+      case NM_DEVICE_TYPE_UNKNOWN:  g_assert_true(FALSE); break;
+      case NM_DEVICE_TYPE_WIFI:     g_assert_true(0==g_strcmp0("wlan0", iface));     g_assert_true(nm_device_get_managed(d));  g_assert_true(!uniq_wlanwifi_found);  uniq_wlanwifi_found=TRUE;  *wlanwifi=d;  break;
+      case NM_DEVICE_TYPE_MODEM:    g_assert_true(0==g_strcmp0("wwan0qmi0", iface)); g_assert_true(nm_device_get_managed(d));  g_assert_true(!uniq_wwanmodem_found); uniq_wwanmodem_found=TRUE; *wwanmodem=d; break;
+      case NM_DEVICE_TYPE_ETHERNET: g_assert_true(0==g_strcmp0("usb0", iface));      g_assert_true(!nm_device_get_managed(d)); break;
+      case NM_DEVICE_TYPE_GENERIC:  g_assert_true(0==g_strcmp0("lo", iface));        g_assert_true(!nm_device_get_managed(d)); break;
+      default: g_assert_true(FALSE); break;
     }
   }
-  return r;
+  g_assert_true(uniq_wwanmodem_found); g_assert_true(*wwanmodem);
+  g_assert_true(uniq_wlanwifi_found); g_assert_true(*wlanwifi);
 }
 
 static inline GVariant *copy_change(GVariant *old, const gboolean bool_autoconnect){
@@ -138,7 +143,7 @@ static inline void nm2_autoconnect_toggle(__attribute__((unused)) NMClient *c, N
 static inline void nm2_wireless_disable(NMClient **const cc){
   g_assert_true(nm_client_wireless_hardware_get_enabled(*cc));
   while(nm_client_wireless_get_enabled(*cc)){
-    g_print("disabling...\n");
+    g_print("disabling wlan...\n");
     // g_print(":; nmcli radio wifi off\n"); g_print("\n");
     nm_client_wireless_set_enabled(*cc, FALSE);
     sleep(1);
@@ -149,7 +154,7 @@ static inline void nm2_wireless_disable(NMClient **const cc){
 static inline void nm2_wireless_enable(NMClient *const *const cc){
   g_assert_true(nm_client_wireless_hardware_get_enabled(*cc));
   g_assert_true(!nm_client_wireless_get_enabled(*cc));
-  g_print("enabling (async)...\n");
+  g_print("enabling wlan (async)...\n");
   nm_client_wireless_set_enabled(*cc, TRUE);
   // g_assert_true(nm_client_wireless_get_enabled(client));
 }
@@ -192,16 +197,31 @@ void nm2_demo1_gvtrel(){
 
 void nm2(const gboolean auto_ap_manual_else){
 
-  NMClient *client=nm2_init();
+  NMClient *client=NULL;
+  NMDevice *wwanmodem=NULL;
+  NMDevice *wlanwifi=NULL;
+  GPtrArray *wificons=NULL;
 
-  nm2_wireless_disable(&client); g_print("\n");
+  client=nm2_init();
 
-  GPtrArray *wificons=nm2_getwificons(client);
+  nm2_wireless_disable(&client); g_print("\n"); // client is dropped!
+  nm2_get_wwan_wifi(client, &wwanmodem, &wlanwifi);
+
+  wificons=nm_device_filter_connections(wlanwifi, nm_client_get_connections(client));
+  g_assert_true(wificons && 1<=(wificons->len));
   for(guint i=0; i<(wificons->len); ++i)
     nm2_autoconnect_toggle(client, wificons->pdata[i], auto_ap_manual_else);
   g_ptr_array_unref(wificons); wificons=NULL;
 
   nm2_wireless_enable(&client); g_print("\n");
+
+  if(auto_ap_manual_else){
+    // g_print("turning on mobile data (async)...\n");
+  }else{
+    g_print("turning off mobile data...\n");
+    g_assert_true(nm_device_disconnect(wwanmodem, NULL, NULL));
+  }
+  g_print("\n");
 
   g_object_unref(client); client=NULL;
 
