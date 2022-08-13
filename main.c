@@ -38,6 +38,8 @@ int main(const int argc, const char *const argv[]){
 
   nm2((0==g_strcmp0("ap", argv[1])));
 
+  g_print("bye\n");
+  g_print("\n");
   return 0;
 
 }

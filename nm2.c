@@ -195,12 +195,24 @@ void nm2_demo1_gvtrel(){
 
 }
 
-// static GObject *source_object=NULL;
-// static GAsyncResult *result=NULL;
-// static void f(GObject* so, GAsyncResult* res, gpointer user_data){
-//   g_assert_true(so); g_object_ref(so); source_object=so;
-//   g_assert_true(res); result=res;
+// void lak82jdf_cb(GObject* source_object, GAsyncResult* res, gpointer user_data){
+//   exit(0);
+//   g_print("laksdjfklsjdfs\n");
+//   return;
 //   g_assert_true(!user_data);
+//   GError *e=NULL;
+//   NMActiveConnection *ac=nm_client_activate_connection_finish(NM_CLIENT(source_object), res, &e); if(!ac){
+//     g_critical("nm_client_activate_connection_finish() error: %s\n", e->message);
+//     g_assert_true(FALSE);
+//   }
+//   g_assert_true(NM_ACTIVE_CONNECTION_STATE_ACTIVATED==nm_active_connection_get_state(ac));
+//   // NMActiveConnectionState s=NM_ACTIVE_CONNECTION_STATE_UNKNOWN;
+//   // while(NM_ACTIVE_CONNECTION_STATE_ACTIVATED!=(s=nm_active_connection_get_state(ac))){
+//   //   g_assert_true(NM_ACTIVE_CONNECTION_STATE_ACTIVATING);
+//   //   sleep(1);
+//   //   g_print("...\n");
+//   // }
+//   g_print("+++\n");
 // }
 
 static inline void nm2_wwan_enable(NMClient *const c, NMDevice *const wwanmodem){
@@ -211,13 +223,21 @@ static inline void nm2_wwan_enable(NMClient *const c, NMDevice *const wwanmodem)
   g_assert_true(nm_device_connection_valid(wwanmodem, gsm));
   g_assert_true(nm_device_connection_compatible(wwanmodem, gsm, NULL));
 
-  GError *e=NULL;
-  // GAsyncResult r={0};
+  // nm_client_activate_connection_async(c, gsm, wwanmodem, NULL, NULL, &lak82jdf_cb, NULL);
   nm_client_activate_connection_async(c, gsm, wwanmodem, NULL, NULL, NULL, NULL);
+
+  // {
+  //   NMActiveConnection *ac=NULL;
+  //   while(!(ac=nm_device_get_active_connection(wwanmodem))){
+  //     g_print("nil\n");
+  //     nanosleep((const struct timespec[]){{0, 1000*1000}}, NULL);
+  //   }
+  //   g_assert_true(0==g_strcmp0("modem", nm_active_connection_get_id(ac)));
+  //   g_assert_true(0==g_strcmp0("gsm", nm_active_connection_get_connection_type(ac)));
+  //   g_assert_true(NM_ACTIVE_CONNECTION_STATE_ACTIVATING==nm_active_connection_get_state(ac));
+  //   g_print("%d\n", nm_active_connection_get_state_reason(ac));
+  // }
   sleep(3);
-  // NMActiveConnection *ac=nm_client_activate_connection_finish(c, NULL, &e);
-  // if(e)
-  //   g_critical("nm_client_activate_connection_async() error: %s\n", e->message);
 
   g_ptr_array_unref(modemcons); modemcons=NULL;
 
