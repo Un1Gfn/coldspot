@@ -34,7 +34,11 @@ static inline void nm2_get_wwan_wifi(NMClient *const c, NMDevice **const wwanmod
   g_assert_true(uniq_wlanwifi_found); g_assert_true(*wlanwifi);
 }
 
-static inline GVariant *copy_change(GVariant *old, const gboolean bool_autoconnect){
+static inline GVariant *copy_change(GVariant *old_setting, const gboolean bool_autoconnect){
+
+  g_variant_get_size(v);
+  g_variant_store()
+  g_variant_new_from_data();
 
   GVariantIter *section_it=NULL;
   gchar        *section_name=NULL;
@@ -47,12 +51,14 @@ static inline GVariant *copy_change(GVariant *old, const gboolean bool_autoconne
   GVariantBuilder *b_sec2set=NULL;
   GVariant *new_setting=NULL;
 
-  g_assert_true(g_variant_type_equal(NM_VARIANT_TYPE_CONNECTION, g_variant_get_type(old)));
+  g_assert_true(g_variant_type_equal(NM_VARIANT_TYPE_CONNECTION, g_variant_get_type(old_setting)));
+  g_assert_true(0==g_strcmp0("a{sa{sv}}", g_variant_get_type_string(old_setting)));
+  g_assert_true(g_variant_check_format_string(old_setting, "a{sa{sv}}", /*copy_only*/TRUE));
 
   b_opt2sec=g_variant_builder_new(NM_VARIANT_TYPE_SETTING);
   b_sec2set=g_variant_builder_new(NM_VARIANT_TYPE_CONNECTION);
 
-  section_it=g_variant_iter_new(old); g_assert_true(section_it); while(g_variant_iter_loop(section_it, "{s@a{sv}}", &section_name, &section)){
+  section_it=g_variant_iter_new(old_setting); g_assert_true(section_it); while(g_variant_iter_loop(section_it, "{s@a{sv}}", &section_name, &section)){
 
     g_assert_true(section_name);
     g_assert_true(section);
@@ -98,6 +104,9 @@ static inline GVariant *copy_change(GVariant *old, const gboolean bool_autoconne
 
   g_variant_iter_free(section_it); section_it=NULL;
   new_setting=g_variant_new("a{sa{sv}}", b_sec2set); b_sec2set=NULL;
+
+  // g_print("%s\n", g_variant_print(old_setting, /*type_annotate*/TRUE));
+  // g_print("%s\n", g_variant_print(new_setting, /*type_annotate*/TRUE));
 
   return new_setting;
 
