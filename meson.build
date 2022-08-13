@@ -20,20 +20,21 @@ project('coldspot', 'c',
 assert('UTC'==run_command('date', '+%Z', check: true).stdout().strip())
 
 add_global_arguments('-D_GNU_SOURCE',
+                     '-DG_ENABLE_DEBUG', # /usr/include/gtk-3.0/gtk/gtkdebug.h gtk_set_debug_flags()
+                     '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72', '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_72',
                      # '-Wextra',
                      '-Wdeprecated-declarations',
-                     '-Wno-error=deprecated-declarations',
-                     '-DG_ENABLE_DEBUG', # /usr/include/gtk-3.0/gtk/gtkdebug.h gtk_set_debug_flags()
                      '-Winline',
-                     '-Wshadow',
                      '-Wno-pedantic',
-                     '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72', '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_72',
+                     '-Wshadow',
+                     '-Wno-error=deprecated-declarations',
+                     '-Wno-error=unused-variable',
                      language: 'c')
 
 executable('coldspot',
-  'buildtime.c',
-  'nm2.c',
   'main.c',
+  'nm2.c',
+  'buildtime.c',
   dependencies: [
     dependency('libnm'),
     dependency('libelogind'),

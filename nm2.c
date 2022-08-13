@@ -195,6 +195,34 @@ void nm2_demo1_gvtrel(){
 
 }
 
+// static GObject *source_object=NULL;
+// static GAsyncResult *result=NULL;
+// static void f(GObject* so, GAsyncResult* res, gpointer user_data){
+//   g_assert_true(so); g_object_ref(so); source_object=so;
+//   g_assert_true(res); result=res;
+//   g_assert_true(!user_data);
+// }
+
+static inline void nm2_wwan_enable(NMClient *const c, NMDevice *const wwanmodem){
+
+  NMConnection *gsm=NULL;
+  GPtrArray *modemcons=nm_device_filter_connections(wwanmodem, nm_client_get_connections(c)); g_assert_true(modemcons && 1==(modemcons->len));
+  gsm=modemcons->pdata[0]; g_assert_true(gsm);
+  g_assert_true(nm_device_connection_valid(wwanmodem, gsm));
+  g_assert_true(nm_device_connection_compatible(wwanmodem, gsm, NULL));
+
+  GError *e=NULL;
+  // GAsyncResult r={0};
+  nm_client_activate_connection_async(c, gsm, wwanmodem, NULL, NULL, NULL, NULL);
+  sleep(3);
+  // NMActiveConnection *ac=nm_client_activate_connection_finish(c, NULL, &e);
+  // if(e)
+  //   g_critical("nm_client_activate_connection_async() error: %s\n", e->message);
+
+  g_ptr_array_unref(modemcons); modemcons=NULL;
+
+}
+
 void nm2(const gboolean auto_ap_manual_else){
 
   NMClient *client=NULL;
@@ -213,13 +241,15 @@ void nm2(const gboolean auto_ap_manual_else){
     nm2_autoconnect_toggle(client, wificons->pdata[i], auto_ap_manual_else);
   g_ptr_array_unref(wificons); wificons=NULL;
 
-  nm2_wireless_enable(&client); g_print("\n");
+  nm2_wireless_enable(&client);
+  g_print("\n");
 
   if(auto_ap_manual_else){
-    // g_print("turning on mobile data (async)...\n");
+    g_print("turning on mobile data (async)...\n");
+    nm2_wwan_enable(client, wwanmodem);
   }else{
     g_print("turning off mobile data...\n");
-    g_assert_true(nm_device_disconnect(wwanmodem, NULL, NULL));
+    nm_device_disconnect(wwanmodem, NULL, NULL);
   }
   g_print("\n");
 
