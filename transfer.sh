@@ -25,7 +25,7 @@ err(){
       # echo "run"
       # echo "[$(date +%T)]"
       ssh user@"$REMOTE" rm -f /tmp/"$BIN"
-      scp "$O/$BIN" "$REMOTE":/user/local/bin/
+      scp "$O/$BIN" root@"$REMOTE":/usr/local/bin/
       # ssh root@"$REMOTE" ash -c '"echo \"[$(date)]\"; /tmp/"$BIN"; echo [exit $?]"'
     } 1>&2
 

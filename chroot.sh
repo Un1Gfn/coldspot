@@ -15,7 +15,15 @@
   sudo mount -v --bind "$F1" "$T1" || err "bind mount failed"
   alacrittytitle.sh 'darren@chroot_buildroot_aarch64'
   pmbootstrap chroot -b aarch64
-  sudo umount -v "$T1" || err "unmount failed"
-  pmbootstrap shutdown || err "pmb shutdown failed"
+  echo
+
+  UMOUNT=(sudo umount -v "$T1")
+  SHUTDOWN=(pmbootstrap shutdown)
+  echo ":; ${UMOUNT[@]}"
+  echo
+  echo ":; ${SHUTDOWN[@]}"
+  echo
+  "${UMOUNT[@]}" || err "unmount failed"
+  "${SHUTDOWN[@]}" || err "shutdown failed"
 
 }; exit

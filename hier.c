@@ -4,37 +4,31 @@
 
 #include "hier.h"
 
-// void typedemo(gpointer o){
-//   // NM_CONNECTION(obj)
-//   // G_TYPE_CHECK_INSTANCE_CAST()
-//   // type_check_instance_cast()
-//   #define X(r1, r2, r3, r4, r5, r6, F, O) {
-//     /*GObject*/            g_assert_true(r1==F(o, G_TYPE_OBJECT));
-//     /*NMObject*/           g_assert_true(r2==F(o, NM_TYPE_OBJECT));
-//     /*NMConnection*/       g_assert_true(r3==F(o, NM_TYPE_CONNECTION));
-//     /*NMRemoteConnection*/ g_assert_true(r4==F(o, NM_TYPE_REMOTE_CONNECTION));
-//     /*NMDevice*/           g_assert_true(r5==F(o, NM_TYPE_DEVICE));
-//     /*NMSetting*/          g_assert_true(r6==F(o, NM_TYPE_SETTING));
-//   }
-//   // https://docs.gtk.org/gobject/#function_macros
-//   g_assert_true(NM_TYPE_REMOTE_CONNECTION==G_OBJECT_TYPE(o));
-//   g_assert_true(!strcmp("NMRemoteConnection",G_OBJECT_TYPE_NAME(o)));
-//   g_assert_true(G_TYPE_CHECK_INSTANCE(o));
-//   X(1, 1, 1, 1, 0, 0, G_TYPE_CHECK_INSTANCE_TYPE, o);
-//   X(1, 0, 0, 0, 0, 0, G_TYPE_CHECK_INSTANCE_FUNDAMENTAL_TYPE, o);
-//   // https://docs.gtk.org/gobject/#functions
-//   X(1, 1, 1, 1, 0, 0, g_type_check_instance_is_a, o);
-//   X(1, 0, 0, 0, 0, 0, g_type_check_instance_is_fundamentally_a, o);
-//   #undef X
-// }
-
+/**
+ * relationship(rc, (const S[]){
+ *   {"OO", G_TYPE_OBJECT},
+ *   {" O", NM_TYPE_OBJECT},
+ *   {" O", NM_TYPE_CONNECTION},
+ *   {" O", NM_TYPE_REMOTE_CONNECTION},
+ *   {"  ", NM_TYPE_DEVICE},
+ *   {"  ", NM_TYPE_SETTING},
+ *   {"  ", NM_TYPE_SETTING_CONNECTION},
+ *   {NULL, G_TYPE_NONE}
+ * });
+ * relationship(nm_connection_get_setting_connection(c), (const S[]){
+ *   {"OO", G_TYPE_OBJECT},
+ *   {"  ", NM_TYPE_OBJECT},
+ *   {"  ", NM_TYPE_CONNECTION},
+ *   {"  ", NM_TYPE_REMOTE_CONNECTION},
+ *   {"  ", NM_TYPE_DEVICE},
+ *   {" O", NM_TYPE_SETTING},
+ *   {" O", NM_TYPE_SETTING_CONNECTION},
+ *   {NULL, G_TYPE_NONE}
+ * });
+ **/
 void relationship(gpointer instance, const S *s){
   g_assert_true(G_TYPE_CHECK_INSTANCE(instance));
   g_assert_true(g_type_check_instance(instance));
-
-  // print chain
-  // g_type_parent()
-
   for(; s->cc; ++s){
     // https://stackoverflow.com/a/1596970/
     // logical xor  ((!A)!=(!B))
@@ -89,3 +83,24 @@ void type_info(const GType t){
   // puts();
   // G_TYPE_FUNDAMENTAL()
 }
+
+// int main(){
+
+//   // register before looking up
+//   // NMSettingConnection *garbage=nm_setting_connection_new();
+//   // puts(g_type_name(g_type_parent(g_type_from_name("NMSettingConnection"))));
+//   // g_object_unref(garbage);
+
+//   // type_info(G_TYPE_OBJECT);
+//   // type_info(NM_TYPE_OBJECT);
+//   // type_info(NM_TYPE_DEVICE);
+//   // type_info(NM_TYPE_REMOTE_CONNECTION);
+//   // type_info(NM_TYPE_SETTING);
+//   // type_info(NM_TYPE_SETTING_CONNECTION);
+//   // type_info(NM_TYPE_CONNECTION);
+
+//   nm();
+
+//   return 0;
+
+// }

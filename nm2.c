@@ -36,10 +36,6 @@ static inline void nm2_get_wwan_wifi(NMClient *const c, NMDevice **const wwanmod
 
 static inline GVariant *copy_change(GVariant *old_setting, const gboolean bool_autoconnect){
 
-  g_variant_get_size(v);
-  g_variant_store()
-  g_variant_new_from_data();
-
   GVariantIter *section_it=NULL;
   gchar        *section_name=NULL;
   GVariant     *section=NULL;
