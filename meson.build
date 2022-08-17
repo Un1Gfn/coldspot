@@ -40,3 +40,11 @@ executable('coldspot',
     dependency('libelogind'),
   ]
 )
+
+# executable('coldspot-adw',
+#   'ui.c',
+#   'buildtime.c',
+#   dependencies: [
+#     dependency('libadwaita-1'),
+#   ]
+# )

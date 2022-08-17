@@ -3,8 +3,12 @@ N:=ninja -j4 -v -C $(O)
 
 default: pingtransfer
 
-# run:
-# env G_DEBUG=fatal-warnings GTK_DEBUG=interactive $(BIN)
+run.adw: build
+# 	GTK inspector
+# 	Ctrl+Shift+I
+# 	Ctrl+Shift+D
+# 	GTK_DEBUG=interactive
+	env G_DEBUG=fatal-warnings $(O)/$(BIN)
 
 pingtransfer: build
 	[ aarch64 = "$(shell uname -m)" ]

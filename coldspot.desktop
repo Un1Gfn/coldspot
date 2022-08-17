@@ -1,0 +1,41 @@
+[Desktop Entry]
+# https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.1.html#recognized-keys
+Encoding=UTF-8
+Type=Application
+Name=Coldspot
+
+# /usr/share/icons/Adwaita/scalable/legacy$
+# Icon=web-browser
+Icon=network-wireless-hotspot
+
+Exec=/bin/true
+
+# https://specifications.freedesktop.org/menu-spec/menu-spec-1.0.html#category-registry
+# Categories=Network;
+Keywords=network;wifi;wireless;wlan;hotspot;
+
+Actions=Ap0;Ap1;Ap2;Noap0;Noap1;Noap2;
+
+[Desktop Action Ap0]
+Name=📡 Ap
+Exec=/usr/local/bin/coldspot ap
+
+[Desktop Action Ap1]
+Name=📡 Ap
+Exec=/usr/local/bin/coldspot ap
+
+[Desktop Action Ap2]
+Name=📡 Ap
+Exec=/usr/local/bin/coldspot ap
+
+[Desktop Action Noap0]
+Name=🛑 Noap
+Exec=/usr/local/bin/coldspot noap
+
+[Desktop Action Noap1]
+Name=🛑 Noap
+Exec=/usr/local/bin/coldspot noap
+
+[Desktop Action Noap2]
+Name=🛑 Noap
+Exec=/usr/local/bin/coldspot noap
